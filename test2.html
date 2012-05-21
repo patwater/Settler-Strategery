@@ -1,0 +1,178 @@
+<html>
+  <head>
+  
+    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <title>
+    Settlers of Catan visualizer
+    </title>
+  
+   <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5/jquery.min.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
+  <script type="text/javascript" src="http://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+      google.load('visualization', '1', {packages: ['corechart']});
+    </script>
+    <style type="text/css">
+    #slider { margin: 10px; }
+ </style>
+
+  <script>
+  $(document).ready(function() {
+    $("#slider").slider({value:5, min:0, max:30, step:1,
+        slide:function(event, ui) {
+       document.getElementById("sliderValue").innerHTML=$("#slider").slider("option", "value");
+     }
+   })
+  });
+  </script>
+  
+  <div id="slider"></div>
+  <div id="sliderValue">0</div>
+  
+  
+    
+    
+    <script type="text/javascript">
+      
+  var rolls = parseInt($("#slider").slider("option", "value"));
+  var basket = [];
+  var production = [];
+  var resources = ["wood","wheat","brick","ore","sheep"];
+  var iteration = 10000;
+  var histograms = [];
+  
+  function processFormData()
+  { 
+    production[0] = document.getElementById('txt_resource1').value.split(' ');
+    production[1] = document.getElementById('txt_resource2').value.split(' ');
+    production[2] = document.getElementById('txt_resource3').value.split(' ');
+    production[3] = document.getElementById('txt_resource4').value.split(' ');
+    production[4] = document.getElementById('txt_resource5').value.split(' ');
+    
+    basket[0] = document.getElementById('txt_basket1').value;
+    basket[1] = document.getElementById('txt_basket2').value;
+    basket[2] = document.getElementById('txt_basket3').value;
+    basket[3] = document.getElementById('txt_basket4').value;
+    basket[4] = document.getElementById('txt_basket5').value;
+ 
+    simulation_results = sim(rolls, resources, production, iteration);
+    drawVisualization(simulation_results.histograms[0], 'visualization1', "# wood");
+    drawVisualization(simulation_results.histograms[1], 'visualization2', "# wheat");
+    drawVisualization(simulation_results.histograms[2], 'visualization3', "# brick");
+    drawVisualization(simulation_results.histograms[3], 'visualization4', "# ore");
+    drawVisualization(simulation_results.histograms[4], 'visualization5', "# sheep");
+  }
+
+  function checker(list, item){
+    count = 0; 
+    for (i = 0; i < list.length; i++){
+      if (list[i] == item){
+        count += 1;}}
+    return count;}
+  
+  function basket_checker(goal, obtained){
+    for (i = 0; i < resources.length; i++){
+      if (obtained[i] < goal[i]){
+        return 0;}}
+    return 1;}
+    
+  function sim(rolls, resources, production, iteration){
+    die_sum = 0;
+    basket_count = 0;
+
+    var histograms = new Array(resources.length);
+    for (var i = 0; i < resources.length; i++) {
+      histograms[i] = new Array(rolls * 10);
+      for (var j = 0; j < rolls * 10; j++)
+      {
+        histograms[i][j] = 0;
+      }
+    }
+
+    for (k = 0; k < iteration; k++){
+      var numObtained = [];
+      
+      for (j = 0; j < resources.length; j++)
+      {
+        numObtained[j] = 0;
+      }
+      
+      
+      for (i = 0; i < rolls; i++){
+        var die_sum = Math.floor(Math.random()*6) + Math.floor(Math.random()*6) + 2;
+          for (j = 0; j < resources.length; j++){
+            numObtained[j] += checker(production[j], die_sum);}
+      }
+          
+      for (j = 0; j < resources.length; j++){  
+      {
+        histograms[j][numObtained[j]] += 1;}
+      }
+        
+      basket_count += basket_checker(basket, numObtained);
+    }
+    
+    return {
+      'histograms': histograms,
+      'basket_count': basket_count
+    }; 
+  }   
+   
+      function drawVisualization(histogram, container, label) {
+        var new_data_array = []; 
+        new_data_array[0] = ['',''];
+        for (i = 0; i < rolls * 2; i++)
+        {
+          new_data_array[i+1] = [i, histogram[i] / iteration];
+        }
+
+        var data = google.visualization.arrayToDataTable(new_data_array);
+      
+        // Create and draw the visualization.
+        var ac = new google.visualization.AreaChart(document.getElementById(container));
+
+        ac.draw(data, {
+          isStacked: true,
+          width: 600,
+          height: 200,
+          vAxis: {title: "Frequency"},
+          hAxis: {title: label}
+        });
+      }
+      
+//      google.setOnLoadCallback(drawVisualization);
+    </script>
+  </head>
+<p id = "">Enter markers on each resource type:</p>
+<form name ="form" id="my_form" action="#">
+Wood: <input type="text" name="resource1" id="txt_resource1" /><br>
+Brick: <input type="text" name="resource2" id="txt_resource2" /><br>
+Wool: <input type="text" name="resource3" id="txt_resource3" /><br>
+Grain: <input type="text" name="resource4" id="txt_resource4" /><br>
+Ore: <input type="text" name="resource5" id="txt_resource5" /><br>
+</form>
+<p id = "Demo">Enter desired basket (# of each resource):</p>
+Wood: <input type="text" name="basket1" id="txt_basket1" /><br>
+Brick: <input type="text" name="basket2" id="txt_basket2" /><br>
+Wool: <input type="text" name="basket3" id="txt_basket3" /><br>
+Grain: <input type="text" name="basket4" id="txt_basket4" /><br>
+Ore: <input type="text" name="basket5" id="txt_basket5" /><br>
+</form>
+<input type="button" name="submit" value="Submit" onclick="processFormData();" />
+  <body style="font-family: Arial;border: 0 none;">
+    <div id="visualization1" style="width: 600px; height: 200px;"></div>
+  </body>
+  <body style="font-family: Arial;border: 0 none;">
+    <div id="visualization2" style="width: 600px; height: 200px;"></div>
+  </body>
+  <body style="font-family: Arial;border: 0 none;">
+    <div id="visualization3" style="width: 600px; height: 200px;"></div>
+  </body>
+  <body style="font-family: Arial;border: 0 none;">
+    <div id="visualization4" style="width: 600px; height: 200px;"></div>
+  </body>
+  <body style="font-family: Arial;border: 0 none;">
+    <div id="visualization5" style="width: 600px; height: 200px;"></div>
+  </body>
+</html>

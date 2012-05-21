@@ -1,0 +1,126 @@
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <title>
+    Settlers of Catan visualizer
+    </title>
+    <script type="text/javascript" src="http://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+      google.load('visualization', '1', {packages: ['corechart']});
+    </script>
+    <script type="text/javascript">
+      
+  var rolls = 5;
+  var basket;
+  var production;
+  var resources = ["wood","wheat","brick","ore","sheep"];
+  var iteration = 10000;
+  var histograms = [];
+  
+  function processFormData()
+  {
+    alert("Process form here");
+    production[0] = document.getElementById('txt_resource1').value.split(' ');
+    production[1] = document.getElementById('txt_resource2').value.split(' ');
+    production[2] = document.getElementById('txt_resource3').value.split(' ');
+    production[3] = document.getElementById('txt_resource4').value.split(' ');
+    production[4] = document.getElementById('txt_resource5').value.split(' ');
+    
+    basket[0] = document.getElementById('txt_basket1').value;
+    basket[1] = document.getElementById('txt_basket2').value;
+    basket[2] = document.getElementById('txt_basket3').value;
+    basket[3] = document.getElementById('txt_basket4').value;
+    basket[4] = document.getElementById('txt_basket5').value;
+    
+    document.write(production);
+    document.write(basket);
+
+    simulation_results = sim(rolls, resources, production, iteration);
+    DrawVisualization(simulation_results.histograms[0]);
+
+    document.write(array);
+    drawVisualization();
+  }
+
+  function checker(list, item){
+    count = 0; 
+    for (i = 0; i < list.length; i++){
+      if (list[i] == item){
+        count += 1;}}
+    return count;}
+  
+  function basket_checker(goal, obtained){
+    for (i = 0; i < numberResources.length; i++){
+      if (obtained[i] < goal[i]){
+        return 0;}}
+    return 1;}
+    
+  function sim(rolls, resources, production, iteration){
+    die_sum = 0 
+    basket_count = 0
+    for (k = 0; k < iteration; k++){
+      var numObtained = []
+      
+      for (i = 0; i < rolls.length; i++){
+        var die_sum = math.floor(math.random*6) + math.floor(math.random*6) + 2;
+          for (j = 0; j < resources.length; j++){
+            numObtained[j] += checker(production[j], die_sum);}
+          
+      for (j = 0; j < resources.length; j++){  
+        histograms[j][numObtained[j]] += 1;}
+        
+      basket_count += basket_checker(basket, numObtained);
+    
+    return {
+      'histograms': histograms,
+      'basket_count': basket_count
+    }; 
+  }   
+    
+       
+      function drawVisualization(histogram) {
+      
+        new_data_array[0] = ['',''];
+        for (i = 0; i < rolls * 10; i++)
+        {
+          new_data_array[i+1] = [i, histogram[i]];
+        }
+        
+        var data = google.visualization.arrayToDataTable(new_data_array);
+      
+        // Create and draw the visualization.
+        var ac = new google.visualization.AreaChart(document.getElementById('visualization'));
+        ac.draw(data, {
+          isStacked: true,
+          width: 600,
+          height: 200,
+          vAxis: {title: "Frequency"},
+          hAxis: {title: "# wood"}
+        });
+      }
+      
+      google.setOnLoadCallback(drawVisualization);
+    </script>
+  </head>
+  <body style="font-family: Arial;border: 0 none;">
+    <div id="visualization" style="width: 600px; height: 200px;"></div>
+  </body>
+<p id = "">Enter markers on each resource type:</p>
+<form name ="form" id="my_form" action="#">
+Wood: <input type="text" name="resource1" id="txt_resource1" /><br>
+Brick: <input type="text" name="resource2" id="txt_resource2" /><br>
+Wool: <input type="text" name="resource3" id="txt_resource3" /><br>
+Grain: <input type="text" name="resource4" id="txt_resource4" /><br>
+Ore: <input type="text" name="resource5" id="txt_resource5" /><br>
+</form>
+<p id = "Demo">Enter desired basket (# of each resource):</p>
+Wood: <input type="text" name="basket1" id="txt_basket1" /><br>
+Brick: <input type="text" name="basket2" id="txt_basket2" /><br>
+Wool: <input type="text" name="basket3" id="txt_basket3" /><br>
+Grain: <input type="text" name="basket4" id="txt_basket4" /><br>
+Ore: <input type="text" name="basket5" id="txt_basket5" /><br>
+</form>
+<input type="button" name="submit" value="Submit" onclick="processFormData();" />
+</body>
+
+</html>
